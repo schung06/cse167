@@ -12,5 +12,14 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
     }
 
     image[tid] = float4(1.0);
-    // TODO: your code here
+    
+    float2 pixel_center = float2(tid.x + 0.5, (float)height - (tid.y + 0.5)); // RWTexture2D is indexed top-down; need to flip y
+    float distance = length(pixel_center - center); // calculates Euclidean distance
+
+    if(distance <= radius){
+        image[tid] = float4(color, 1.0);
+
+    }else{
+        image[tid] = float4(0.5, 0.5, 0.5, 1.0);
+    }
 }
