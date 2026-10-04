@@ -1,13 +1,5 @@
 import hw1_common;
 
-float2 canvas(uint2 tid, uint height){
-    return float2(tid.x + 0.5, (float)height - (tid.y + 0.5));
-}
-
-//using non-zero rule
-bool in_polyline(float2 p, StructuredBuffer<float2> polyline, int n){
-
-}
 
 [shader("compute")]
 [numthreads(8, 8, 1)]
@@ -27,10 +19,75 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
         return;
     }
 
-    image[tid] = float4(1.0);
+    image[tid] = float4(0.5, 0.5, 0.5, 1.0); //change background color to gray
     // TODO: your code here
 
+    float2 q = float2(tid.x + 0.5, (float)height - (tid.y + 0.5));
+    if(use_fill_color && is_closed){
+        //using non-zero rule
+        int count = 0; //line going up or down count(aka winding number)
+        for(int i = 0; i < num_polyline; i++){
+            float2 p0 = polyline[i];
+            float2 p1 = polyline[(i+1)%num_polyline]; //wraparound
+            bool is_upward = p1.y > p0.y;
+            bool crosses = (p0.y <= q.y && p1.y > q.y) || (p1.y <= q.y && p0.y > q.y);
 
-    
+            if(crosses){
+                float t = (q.y - p0.y) / (p1.y - p0.y);
+                float x_cross = p0.x + t * (p1.x - p0.x); //lec 2 slide 54
+                if(x_cross > q.x){
+                    if(is_upward){
+                        count++;
+                    }else{
+                        count--;
+                    }
+                }
+            }
+        }
+
+        if(count != 0){
+            image[tid] = float4(fill_color, 1.0);
+        }
+
+    }
+
+    if(use_stroke_color){
+        int num_segments = is_closed ? num_polyline : num_polyline - 1;
+
+        for(int i = 0; i < num_segments; i++){
+            float2 p0 = polyline[i];
+            float2 p1 = polyline[(i+1)%num_polyline];
+
+            bool start = (!is_closed && i==0);
+            bool end = (!is_closed && i==(num_segments-1));
+
+            float2 d = p1 - p0;
+            float len = length(d);
+            if(len < 1e-6){
+                continue;
+            }
+
+            float l = dot(d, q-p0) / len;
+            bool valid = true;
+            if(start && l<0){
+                valid = false;
+            }
+            if(end && l>len){
+                valid = false;
+            }
+
+            if(valid){
+                float t = clamp(l, 0.0, len);
+                float2 closest = p0 + (d / len)*t;
+                float dist = length(q - closest);
+                if(dist <= (stroke_width*0.5)){
+                    image[tid] = float4(stroke_color, 1.0);
+                    break;
+                }
+            }
+        }
+    }
+
+
 
 }
