@@ -48,7 +48,6 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
         if(count != 0){
             image[tid] = float4(fill_color, 1.0);
         }
-
     }
 
     if(use_stroke_color){
@@ -78,8 +77,8 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
 
             if(valid){
                 float t = clamp(l, 0.0, len);
-                float2 closest = p0 + (d / len)*t;
-                float dist = length(q - closest);
+                float2 q_prime = p0 + (d / len)*t;
+                float dist = length(q - q_prime);
                 if(dist <= (stroke_width*0.5)){
                     image[tid] = float4(stroke_color, 1.0);
                     break;
@@ -87,7 +86,4 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
             }
         }
     }
-
-
-
 }
