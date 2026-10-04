@@ -1,5 +1,14 @@
 import hw1_common;
 
+float2 canvas(uint2 tid, uint height){
+    return float2(tid.x + 0.5, (float)height - (tid.y + 0.5));
+}
+
+//using non-zero rule
+bool in_polyline(float2 p, StructuredBuffer<float2> polyline, int n){
+
+}
+
 [shader("compute")]
 [numthreads(8, 8, 1)]
 void compute_main(uint2 tid : SV_DispatchThreadID,
@@ -20,4 +29,8 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
 
     image[tid] = float4(1.0);
     // TODO: your code here
+
+
+    
+
 }
