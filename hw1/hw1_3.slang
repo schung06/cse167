@@ -58,7 +58,7 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
                     float2 p1 = points[pl.pts_begin + (i + 1) % n];
 
                     bool start = (!pl.closed && i == 0);
-                    bool end   = (!pl.closed && i == (num_segments - 1));
+                    bool end = (!pl.closed && i == (num_segments - 1));
 
                     float2 d = p1 - p0;
                     float len = length(d);
