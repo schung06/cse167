@@ -50,7 +50,7 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
             Polyline pl = polylines[shape.index];
             int n = pl.pts_end - pl.pts_begin;
 
-            // stroke test 
+            // stroke test
             if (shape.use_stroke) {
                 int num_segments = pl.closed ? n : n - 1;
                 for (int i = 0; i < num_segments; i++) {
@@ -58,22 +58,17 @@ void compute_main(uint2 tid : SV_DispatchThreadID,
                     float2 p1 = points[pl.pts_begin + (i + 1) % n];
 
                     bool start = (!pl.closed && i == 0);
-                    bool end = (!pl.closed && i == (num_segments - 1));
+                    bool end   = (!pl.closed && i == (num_segments - 1));
 
                     float2 d = p1 - p0;
                     float len = length(d);
                     if (len < 1e-6) continue;
 
-                    float l = dot(d, p - p0) / len;    
-                    bool valid = true;
-                    if (start && l < 0) valid = false;
-                    if (end && l > len) valid = false;
-
-                    if (valid) {
+                    float l = dot(d, p - p0) / len;
+                    if ((!start || l >= 0) && (!end || l <= len)) {
                         float t = clamp(l, 0.0, len);
                         float2 q_prime = p0 + (d / len) * t;
-                        float dist = length(p - q_prime);    
-                        if (dist <= (shape.stroke_width * 0.5)) {
+                        if (length(p - q_prime) <= shape.stroke_width * 0.5) {
                             color = shape.stroke_rgba.rgb;
                             hit = true;
                             break;
